@@ -154,10 +154,34 @@ int32_t cyborg_detector_app(void* p) {
 
     InputEvent event;
     while(app->running) {
-        if(furi_message_queue_get(app->event_queue, &event, 100) == FuriStatusOk) {
-            if(event.type == InputTypeShort && event.key == InputKeyBack) {
-                app->running = false;
-            }
+       if(furi_message_queue_get(app->event_queue, &event, 100) == FuriStatusOk) {
+    if(event.type == InputTypeShort && event.key == InputKeyBack) {
+        app->running = false;
+    }
+        
+        else if(event.type == InputTypeLong && event.key == InputKeyBack) {
+            app->led_active = !app->led_active;
+
+        if(app->led_active) {
+        notification_message(app->notifications, &sequence_set_blue_255);
+    } else {
+        notification_message(app->notifications, &sequence_reset_blue);
+        }
+    }
+}
+
+    } else if(event.type == InputTypeShort && event.key == InputKeyOk) {
+        // Toggle LED + banner state (test harness)
+        app->led_active = !app->led_active;
+
+        if(app->led_active) {
+            notification_message(app->notifications, &sequence_set_blue_255);
+        } else {
+            notification_message(app->notifications, &sequence_reset_blue);
+        }
+    }
+}
+
         }
 
     bool tag_present = false; // TODO: implement real check/poller callback
