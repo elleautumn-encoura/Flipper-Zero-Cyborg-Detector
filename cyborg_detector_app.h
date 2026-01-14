@@ -10,6 +10,7 @@ typedef struct {
     FuriMessageQueue* event_queue;
     bool running;
     bool field_active;
+    bool led_active;
 } CyborgDetectorApp;
 
 CyborgDetectorApp* cyborg_detector_app_alloc();
