@@ -4,6 +4,8 @@
 #include <gui/elements.h>
 #include <furi_hal_nfc.h>
 #include <core/log.h>
+#include <notification/notification_messages.h>
+
 
 #define TAG "CyborgDetectorApp"
 #define NFC_ACTIVE_HOLD_MS 500
