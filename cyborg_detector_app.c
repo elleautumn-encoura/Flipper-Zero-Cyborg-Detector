@@ -16,10 +16,15 @@ static void cyborg_detector_set_nfc_active(CyborgDetectorApp* app, bool active) 
     if(active) {
         // Choose any notification sequence you prefer for “active”
         notification_message(app->notifications, &sequence_set_red_255);
+        app->led_active = true;
     } else {
         notification_message(app->notifications, &sequence_reset_red);
+        app->led_active = false;
     }
 }
+
+
+
 
 static void cyborg_detector_draw_callback(Canvas* canvas, void* context) {
     CyborgDetectorApp* app = context;
@@ -54,22 +59,27 @@ static void cyborg_detector_draw_callback(Canvas* canvas, void* context) {
     const uint32_t hold_ticks = furi_ms_to_ticks(NFC_ACTIVE_HOLD_MS);
     const bool show_active = app->nfc_active || ((now - app->last_activity_tick) < hold_ticks);
 
-    canvas_set_font(canvas, FontSecondary);
+   canvas_set_font(canvas, FontSecondary);
 
-    if(show_active) {
-        // Draw a framed “ACTIVE” box
-        canvas_draw_frame(canvas, 78, 14, 48, 14);
-        canvas_draw_str_aligned(canvas, 102, 16, AlignCenter, AlignTop, "NFC ACTIVE");
-    } else {
-        canvas_draw_frame(canvas, 84, 14, 42, 14);
-        canvas_draw_str_aligned(canvas, 105, 16, AlignCenter, AlignTop, "IDLE");
-    }
-
-    canvas_draw_str_aligned(canvas, 64, 54, AlignCenter, AlignBottom, "Scanning...");
-}
-    // Draw the "Scanning..." text at the bottom, centered
-    canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str_aligned(canvas, 64, 54, AlignCenter, AlignBottom, "Scanning...");
+if(app->led_active) {
+    canvas_draw_frame(canvas, 18, 44, 92, 16);
+    canvas_draw_str_aligned(
+        canvas,
+        64,
+        46,
+        AlignCenter,
+        AlignTop,
+        "CYBORG DETECTED!"
+    );
+} else {
+    canvas_draw_str_aligned(
+        canvas,
+        64,
+        54,
+        AlignCenter,
+        AlignBottom,
+        "Scanning..."
+    );
 }
 
 static void cyborg_detector_input_callback(InputEvent* input_event, void* context) {
@@ -112,6 +122,7 @@ CyborgDetectorApp* cyborg_detector_app_alloc() {
     app->event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     app->running = true;
     app->field_active = false;
+    app->led_active = false;
     app->notifications = furi_record_open(RECORD_NOTIFICATION);
     app->nfc_active = false;
     app->last_activity_tick = 0;
