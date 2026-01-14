@@ -3,11 +3,13 @@
 #include <gui/gui.h>
 #include <gui/view_port.h>
 #include <furi_hal_nfc.h>
+#include <notification/notification_app.h>
 
 typedef struct {
     Gui* gui;
     ViewPort* view_port;
     FuriMessageQueue* event_queue;
+    
     bool running;
     bool field_active;
     bool led_active;
