@@ -6,6 +6,20 @@
 #include <core/log.h>
 
 #define TAG "CyborgDetectorApp"
+#define NFC_ACTIVE_HOLD_MS 500
+
+static void cyborg_detector_set_nfc_active(CyborgDetectorApp* app, bool active) {
+    if(app->nfc_active == active) return;
+
+    app->nfc_active = active;
+
+    if(active) {
+        // Choose any notification sequence you prefer for “active”
+        notification_message(app->notifications, &sequence_set_red_255);
+    } else {
+        notification_message(app->notifications, &sequence_reset_red);
+    }
+}
 
 static void cyborg_detector_draw_callback(Canvas* canvas, void* context) {
     CyborgDetectorApp* app = context;
@@ -23,7 +37,24 @@ static void cyborg_detector_draw_callback(Canvas* canvas, void* context) {
     canvas_draw_circle(canvas, 64, 32, 5); // Inner circle
     canvas_draw_line(canvas, 54, 32, 74, 32); // Horizontal line
     canvas_draw_line(canvas, 64, 22, 64, 42); // Vertical line
+ 
+    const uint32_t now = furi_get_tick();
+    const uint32_t hold_ticks = furi_ms_to_ticks(NFC_ACTIVE_HOLD_MS);
+    const bool show_active = app->nfc_active || ((now - app->last_activity_tick) < hold_ticks);
 
+    canvas_set_font(canvas, FontSecondary);
+
+    if(show_active) {
+        // Draw a framed “ACTIVE” box
+        canvas_draw_frame(canvas, 78, 14, 48, 14);
+        canvas_draw_str_aligned(canvas, 102, 16, AlignCenter, AlignTop, "NFC ACTIVE");
+    } else {
+        canvas_draw_frame(canvas, 84, 14, 42, 14);
+        canvas_draw_str_aligned(canvas, 105, 16, AlignCenter, AlignTop, "IDLE");
+    }
+
+    canvas_draw_str_aligned(canvas, 64, 54, AlignCenter, AlignBottom, "Scanning...");
+}
     // Draw the "Scanning..." text at the bottom, centered
     canvas_set_font(canvas, FontSecondary);
     canvas_draw_str_aligned(canvas, 64, 54, AlignCenter, AlignBottom, "Scanning...");
@@ -69,6 +100,10 @@ CyborgDetectorApp* cyborg_detector_app_alloc() {
     app->event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     app->running = true;
     app->field_active = false;
+    app->notifications = furi_record_open(RECORD_NOTIFICATION);
+    app->nfc_active = false;
+    app->last_activity_tick = 0;
+
 
     view_port_draw_callback_set(app->view_port, cyborg_detector_draw_callback, app);
     view_port_input_callback_set(app->view_port, cyborg_detector_input_callback, app);
@@ -84,6 +119,8 @@ void cyborg_detector_app_free(CyborgDetectorApp* app) {
     view_port_free(app->view_port);
     furi_message_queue_free(app->event_queue);
     furi_record_close(RECORD_GUI);
+    furi_record_close(RECORD_NOTIFICATION);
+
 
     free(app);
 }
@@ -107,6 +144,17 @@ int32_t cyborg_detector_app(void* p) {
                 app->running = false;
             }
         }
+
+    bool tag_present = false; // TODO: implement real check/poller callback
+        if(tag_present) {
+        app->last_activity_tick = furi_get_tick();
+        cyborg_detector_set_nfc_active(app, true);
+    }     else {
+        cyborg_detector_set_nfc_active(app, false);
+    }
+
+    view_port_update(app->view_port);
+}
 
         view_port_update(app->view_port);
     }
