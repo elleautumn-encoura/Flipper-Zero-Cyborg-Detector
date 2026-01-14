@@ -63,24 +63,11 @@ static void cyborg_detector_draw_callback(Canvas* canvas, void* context) {
 
 if(app->led_active) {
     canvas_draw_frame(canvas, 18, 44, 92, 16);
-    canvas_draw_str_aligned(
-        canvas,
-        64,
-        46,
-        AlignCenter,
-        AlignTop,
-        "CYBORG DETECTED!"
-    );
+    canvas_draw_str_aligned(canvas, 64, 46, AlignCenter, AlignTop, "CYBORG DETECTED!");
 } else {
-    canvas_draw_str_aligned(
-        canvas,
-        64,
-        54,
-        AlignCenter,
-        AlignBottom,
-        "Scanning..."
-    );
+    canvas_draw_str_aligned(canvas, 64, 54, AlignCenter, AlignBottom, "Scanning...");
 }
+
 
 static void cyborg_detector_input_callback(InputEvent* input_event, void* context) {
     furi_assert(context);
@@ -126,6 +113,9 @@ CyborgDetectorApp* cyborg_detector_app_alloc() {
     app->notifications = furi_record_open(RECORD_NOTIFICATION);
     app->nfc_active = false;
     app->last_activity_tick = 0;
+    app->notifications = furi_record_open(RECORD_NOTIFICATION);
+    app->led_active = false;
+
 
 
     view_port_draw_callback_set(app->view_port, cyborg_detector_draw_callback, app);
