@@ -37,6 +37,18 @@ static void cyborg_detector_draw_callback(Canvas* canvas, void* context) {
     canvas_draw_circle(canvas, 64, 32, 5); // Inner circle
     canvas_draw_line(canvas, 54, 32, 74, 32); // Horizontal line
     canvas_draw_line(canvas, 64, 22, 64, 42); // Vertical line
+
+        // Feedback window when LED is being lit
+    canvas_set_font(canvas, FontSecondary);
+
+    if(app->field_active) {
+        // Example window centered above bottom text area
+        canvas_draw_frame(canvas, 18, 44, 92, 16);
+        canvas_draw_str_aligned(canvas, 64, 46, AlignCenter, AlignTop, "CYBORG DETECTED!");
+    } else {
+        canvas_draw_str_aligned(canvas, 64, 54, AlignCenter, AlignBottom, "Scanning...");
+    }
+}
  
     const uint32_t now = furi_get_tick();
     const uint32_t hold_ticks = furi_ms_to_ticks(NFC_ACTIVE_HOLD_MS);
